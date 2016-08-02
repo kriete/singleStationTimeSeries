@@ -1,3 +1,6 @@
+from SingleStationViewer import SingleStationViewer
+
+
 class ProcessingManager:
-    def __init__(self, **kwargs):
-        pass
+    def __init__(self):
+        SingleStationViewer()
