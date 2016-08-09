@@ -14,13 +14,55 @@ import pandas as pd
 import os
 import pytz
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 handler = logging.FileHandler('utils.log')
 handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s p%(process)s {%(pathname)s:%(lineno)d} - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
+
+def get_good_data_only(cur_root, variable_name):
+    # Currently only works for 1D data
+    variable_data = get_data_array(cur_root[variable_name])
+    try:
+        qc_data = get_data_array(cur_root['QC_' + variable_name])
+    except IndexError:
+        logger.info('No QC variable found for {0}.'.format(variable_name))
+        return variable_data
+    good_idx = qc_data == 1
+    variable_data[~good_idx] = np.nan
+    return variable_data
+
+
+def check_other_instrument_idx(link, instrument_name):
+    # dirty workaround to not discard instruments from further deployments... -.-
+    out_links = []
+    names = [instrument_name.lower(), instrument_name.lower().replace('-', '_')]
+    for cur_link in link:
+        cur_all_idx = []
+        for cur_name in names:
+            cur_all_idx.extend([n for n in xrange(len(cur_link)) if cur_link.find(cur_name, n) == n])
+        cur_new_link = cur_link
+        number_arr = range(0, 9)
+        for number in number_arr:
+            for idx in cur_all_idx:
+                temp_len = len(cur_name)
+                cur_new_link = cur_new_link[0:idx+temp_len-1] + str(number) + cur_new_link[idx+temp_len::]
+            out_links.append(cur_new_link)
+    return out_links
+
+
+def check_other_deps(link):
+    out_links = []
+    dep_idx = link.find('dep000')
+    number_arr = range(1, 6)
+    for number in number_arr:
+        cur_link = link
+        cur_link = cur_link[0:dep_idx+6] + str(number) + cur_link[dep_idx+7:]
+        out_links.append(cur_link)
+    return out_links
 
 
 def get_min_max_ranges(data):
@@ -174,8 +216,8 @@ def get_mooring_stations(base_url, year, month, only_single_stations=None):
             string = str(url_builder[n])
             idx = string.find("/")
             # url = "http://thredds.socib.es/thredds/catalog/mooring/weather_station/" + URLBuilder[n][0][0:idx-1] + "/L1/catalog.html"
-            url = "http://thredds.socib.es/thredds/catalog/mooring/weather_station/" + url_builder[n][0][
-                                                                                       0:idx - 1] + "L1/catalog.html"
+            base_url.rfind('/')
+            url = base_url[0:base_url.rfind('/')+1] + url_builder[n][0][0:idx - 1] + "L1/catalog.html"
             name = url_builder[n][0][0:idx - 2]
             if only_single_stations != [] and name not in only_single_stations:
                 logger.info('Skipping station ' + name + '. (Single station bypass).')
