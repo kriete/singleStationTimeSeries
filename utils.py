@@ -79,7 +79,7 @@ def get_bokeh_plot(data, conv_time, units, cur_title):
     cur_min, cur_max = get_min_max_ranges(data)
     p = figure(plot_width=1200, plot_height=300, tools=["pan, xwheel_zoom, hover, reset"], x_axis_type="datetime",
                y_range=(cur_min, cur_max), y_axis_label=units, toolbar_location=None, logo=None,
-               active_scroll='xwheel_zoom', webgl=False, title=cur_title)
+               active_scroll='xwheel_zoom', webgl=False, title=str(cur_title))
     time_strings = map(str, conv_time)
     data_source = ColumnDataSource(
         data=dict(
@@ -300,18 +300,19 @@ def read_year_month_config():
     return year, month
 
 
-def read_single_stations_config():
-    single_stations = []
-    decision = read_value_config('General', 'use_only_single_stations')
-    if decision == 'True':
-        single_stations_strings = read_value_config('General', 'single_stations')
-        comma_idx = find_all_instances(single_stations_strings, ',')
-        start_idx = 0
+def read_comma_separated_config(section, variable):
+    entries = []
+    full_entry = read_value_config(section, variable)
+    comma_idx = find_all_instances(full_entry, ',')
+    start_idx = 0
+    if comma_idx:
         for i in comma_idx:
-            single_stations.append(single_stations_strings[start_idx:i])
+            entries.append(full_entry[start_idx:i])
             start_idx = i + 1
-        single_stations.append(single_stations_strings[start_idx+1::])
-    return single_stations
+        entries.append(full_entry[start_idx+1::])
+    else:
+        entries.append(full_entry[start_idx:])
+    return entries
 
 
 def check_link_availability(link):

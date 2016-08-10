@@ -8,7 +8,7 @@ class SingleStationViewer:
         self.end_year = None
         self.start_month = None
         self.end_month = None
-        self.station_name = None
+        self.station_names = None
         self.variable_name = None
         self.sorted_idx = None
         self.converted_time = None
@@ -30,25 +30,26 @@ class SingleStationViewer:
         self.end_year = int(read_value_config(general_section_name, 'end_year'))
         self.start_month = int(read_value_config(general_section_name, 'start_month'))
         self.end_month = int(read_value_config(general_section_name, 'end_month'))
-        self.station_name = read_value_config(general_section_name, 'station_name')
+        # self.station_names = read_value_config(general_section_name, 'station_names')
+        self.station_names = read_comma_separated_config(general_section_name, 'station_names')
         self.variable_name = read_value_config(general_section_name, 'variable_name')
         self.output_path = read_value_config(general_section_name, 'output_path')
         if read_value_config(general_section_name, 'use_good_data_only') == 'True':
             self.use_good_data_only = True
 
     def read_station_links_from_thredds(self):
-        # TODO: bypass eventually different deployments -.- very annoying for processing!
         year_difference = self.end_year - self.start_year
         month_difference = self.end_month - self.start_month
         counter_difference = year_difference * 12 + month_difference
-        cur_year = self.start_year
         temp_links = []
-        for x in range(0, counter_difference + 1):
-            cur_month = (self.start_month + x - 1) % 12 + 1
-            if ((self.start_month + x) % 12) == 1:
-                cur_year += 1
-            logger.debug(str(cur_month) + ' ' + str(cur_year))
-            temp_links.extend(get_mooring_stations(self.base_html, cur_year, cur_month, only_single_stations=self.station_name))
+        for cur_station in self.station_names:
+            cur_year = self.start_year
+            for x in range(0, counter_difference + 1):
+                cur_month = (self.start_month + x - 1) % 12 + 1
+                if ((self.start_month + x) % 12) == 1:
+                    cur_year += 1
+                logger.debug(str(cur_month) + ' ' + str(cur_year))
+                temp_links.extend(get_mooring_stations(self.base_html, cur_year, cur_month, only_single_stations=cur_station))
         for station_link in temp_links:
             self.station_links.extend(check_other_deps(station_link))
 
@@ -83,12 +84,16 @@ class SingleStationViewer:
         cur_root = Dataset(self.station_links[0])
         cur_var = cur_root[self.variable_name]
         cur_unit = cur_var.units
-        if self.use_good_data_only:
-            file_name = self.output_path + self.station_name + '_QCed_' + self.variable_name + '.html'
-            plot_title = self.station_name + ' good data only'
+        if len(self.station_names) > 1:
+            cur_station_name = self.station_names[0] + '_combined'
         else:
-            file_name = self.output_path + self.station_name + '_' + self.variable_name + '.html'
-            plot_title = self.station_name
+            cur_station_name = self.station_names[0]
+        if self.use_good_data_only:
+            file_name = self.output_path + cur_station_name + '_QCed_' + self.variable_name + '.html'
+            plot_title = cur_station_name + ' good data only'
+        else:
+            file_name = self.output_path + cur_station_name + '_' + self.variable_name + '.html'
+            plot_title = cur_station_name
         p = get_bokeh_plot(self.values, self.converted_time, cur_unit, plot_title)
         logger.info('Save bokeh plot...')
         output_file(file_name)
