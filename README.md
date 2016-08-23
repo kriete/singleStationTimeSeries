@@ -11,7 +11,7 @@ Or try the interactive example here:
 
 Buoy Canal de Ibiza SCB_SBE37006 Water Temperature
 
-<a href="http://htmlpreview.github.io/?https://github.com/kriete/singleStationTimeSeries/blob/master/example/buoy_canaldeibiza-scb_sbe37006_combined_QCed_WTR_TEM_SBE37.html">Rendered HTML</a>
+<a href="https://htmlpreview.github.io/?https://github.com/kriete/singleStationTimeSeries/blob/master/example/buoy_canaldeibiza-scb_sbe37006_combined_QCed_WTR_TEM_SBE37.html">Rendered HTML</a>
 
 ## Dependencies
 - numpy
