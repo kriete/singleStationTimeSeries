@@ -1,8 +1,19 @@
 from utils import *
+from bokeh.io import output_file, save
+
+
+__author__ = "Andreas Krietemeyer"
+__copyright__ = "Copyright 2016, SOCIB Sistema d observacio i prediccio costaner de les Illes Balears"
+__license__ = "GNU GPL v 3"
+__version__ = "1.0"
+__maintainer__ = ["Andreas Krietemeyer"]
+__email__ = "akrietemeyer@socib.es"
+__status__ = "Experimental"
 
 
 class SingleStationViewer:
     def __init__(self):
+        logger.info('Starting processing...')
         self.base_html = None
         self.start_year = None
         self.end_year = None
@@ -19,6 +30,7 @@ class SingleStationViewer:
         self.time = []
         self.values = []
         self.read_config_params()
+        logger.info('Reading stations links from thredds...')
         self.read_station_links_from_thredds()
         self.read_data_from_links()
         self.create_bokeh_plot()
@@ -57,10 +69,10 @@ class SingleStationViewer:
         # handle non-existent data sources
         remove_links = []
         for station_link in self.station_links:
-            logger.info('Reading {0}'.format(station_link))
+            logger.debug('Reading {0}'.format(station_link))
             try:
                 cur_root = Dataset(station_link)
-            except RuntimeError:
+            except (RuntimeError, IOError):
                 logger.debug('File not exist. Will skip. {0}'.format(station_link))
                 remove_links.append(station_link)
                 continue

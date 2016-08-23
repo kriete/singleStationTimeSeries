@@ -6,9 +6,8 @@ import ConfigParser
 import numpy as np
 import matplotlib.dates as md
 from datetime import datetime
-from bokeh.io import output_file, show, save
 from bokeh.plotting import figure, ColumnDataSource
-from bokeh.models import PanTool, Range1d, LinearAxis, CustomJS, HoverTool
+from bokeh.models import PanTool, HoverTool
 from collections import OrderedDict
 import pandas as pd
 import os
@@ -16,9 +15,10 @@ import pytz
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-handler = logging.FileHandler('utils.log')
+handler = logging.FileHandler('single_station.log')
 handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s p%(process)s {%(pathname)s:%(lineno)d} - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter('%(asctime)s p%(process)s {%(pathname)s:%(lineno)d} - %(name)s - %(levelname)s -'
+                              ' %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
@@ -220,7 +220,7 @@ def get_mooring_stations(base_url, year, month, only_single_stations=None):
             url = base_url[0:base_url.rfind('/')+1] + url_builder[n][0][0:idx - 1] + "L1/catalog.html"
             name = url_builder[n][0][0:idx - 2]
             if only_single_stations != [] and name not in only_single_stations:
-                logger.info('Skipping station ' + name + '. (Single station bypass).')
+                logger.debug('Skipping station ' + name + '. (Single station bypass).')
                 continue
             req = Request(url)
             try:
